@@ -1,20 +1,26 @@
-# AI Chatbot (Phase 2: Persistent Memory)
+# AI Chatbot (Phase 4: Context and Memory)
 
-A console-based chatbot built in Python. This is an evolving project — starting as a simple rule-based bot, now with persistent per-user memory, and planned upgrades toward smarter pattern matching and eventually real AI API integration.
+A console-based chatbot built in Python. It started as a simple rule-based bot and is growing in phases. It now understands many ways of saying the same thing, remembers facts about each user, and can recall what you talked about in earlier sessions. Real AI integration is planned next.
 
-## Current features (Phase 1 + 2)
+## Current features (Phases 1 to 4)
 
-- Keyword-based responses with variation (multiple possible replies per keyword, chosen randomly so it doesn't feel robotic)
-- Detects the user's name from natural input (e.g. "my name is Obafemi")
-- Personalizes responses once it knows your name
-- **Persistent, per-user memory** — enter a username at startup, and your name is remembered across separate runs of the program, saved to your own JSON file
-- Clean exit on "bye"
+- Keyword responses with variety (several possible replies per keyword, chosen randomly)
+- **Flexible name detection** using regex: "my name is Bob", "call me Bob", "I'm Bob" and "I am Bob" all work
+- **Fact extraction** from natural sentences: age ("I'm 19"), location ("I live in Ibadan") and interests ("I like football")
+- **Follow-up questions**: after you say what you like, the bot asks a question and treats your next message as the answer
+- **Per-user persistent memory**: log in with a username, and your name, facts and recent conversation are saved to your own JSON file
+- **Recall commands**: ask "what do you know about me" or "what did we talk about"
+- Whole-word keyword matching, so "hi" doesn't trigger inside "this"
+- Exits on "bye", "goodbye", "exit" or "quit"
+- Safe usernames: special characters are stripped before a filename is created
 
 ## How it works
 
-The bot checks user input against a dictionary of keywords mapped to possible responses. If no keyword matches, it falls back to a default "I don't understand" message. Name detection uses simple string splitting to extract the name from a fixed phrase pattern.
+**Pattern matching.** Regular expressions pull the name, age, location and interests out of a sentence instead of requiring one exact phrase. Keywords are matched as whole words using word boundaries.
 
-For memory, each username maps to its own file (`memory_<username>.json`). On startup, the bot checks if that file already exists — if so, it loads the saved name; if not, it treats the user as new. Whenever a name is set, it's saved immediately to that user's file.
+**Memory.** Each username maps to its own file, `memory_<username>.json`, which stores the user's name, facts and the last 50 exchanges. The file is saved after every message, so nothing is lost if the terminal is closed suddenly. Files from earlier versions that only contain a name still load correctly.
+
+**Short-term state.** The bot keeps a small `pending` marker. When it asks a question, the next message is treated as the answer and stored, instead of being matched against keywords again.
 
 ## How to run
 
@@ -22,37 +28,36 @@ For memory, each username maps to its own file (`memory_<username>.json`). On st
 python main.py
 ```
 
-No external libraries required — built entirely with Python's standard library (`random`, `json`, `os`).
+No external libraries are needed. It uses only Python's standard library (`json`, `os`, `random`, `re`).
 
 ## Example conversation
 
-**First run (new user):**
 ```
-Enter your username: obafemi
+Enter your username: bob
 Bot: Welcome! I don't think we've met.
-You: hello
-Bot: Hi there!
-You: my name is Obafemi
-Bot: Nice to meet you Obafemi!
+You: hi, call me bob
+Bot: Nice to meet you Bob!
+You: I live in Ibadan and I like football
+Bot: Ibadan sounds like a great place! Nice, football! What do you enjoy most about it?
+You: the goals
+Bot: Got it, I'll remember that about football.
+You: what do you know about me
+Bot: So far I know that your name is Bob; you live in Ibadan; you like football; about football you said "the goals".
 You: bye
-Bot: Goodbye!
+Bot: Goodbye, Bob!
 ```
 
-**Second run (same username):**
-```
-Enter your username: obafemi
-Bot: Welcome back Obafemi!
-You: hello
-Bot: Hey Obafemi, good to see you again!
-You: bye
-Bot: Goodbye!
-```
+Next time, the same username is greeted back and reminded of what was said last.
+
+## Privacy note
+
+Memory files contain what users type, so `memory_*.json` is listed in `.gitignore` and is never pushed to GitHub.
 
 ## Roadmap
 
-- [x] Phase 1: Rule-based keyword matching + session memory
-- [x] Phase 2: Persistent memory (remember users across separate runs, via per-user saved files)
-- [ ] Phase 3: Smarter pattern matching with regex, expanded keyword coverage
-- [ ] Phase 4: Basic conversation context/state tracking
-- [ ] Phase 5: Real AI integration via an LLM API for open-ended responses
+- [x] Phase 1: Rule-based keyword matching and session memory
+- [x] Phase 2: Persistent per-user memory using JSON files
+- [x] Phase 3: Regex pattern matching and expanded keyword coverage
+- [x] Phase 4: Conversation context, stored facts and recall
+- [ ] Phase 5: Real AI integration through an LLM API
 - [ ] Phase 6: GUI version (Tkinter)
